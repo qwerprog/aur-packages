@@ -15,6 +15,8 @@ on:
 jobs:
   check-and-update:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v7
@@ -61,11 +63,13 @@ jobs:
           cd tencent-wechat
           sed -i "s/^pkgver=.*/pkgver=${NEW_VER}/" PKGBUILD
           sed -i "s/^pkgrel=.*/pkgrel=1/" PKGBUILD
-          sed -i "s/sha256sums_x86_64=('[a-f0-9]*')/sha256sums_x86_64=('${NEW_SHA256}')/" PKGBUILD
+          sed -i -E "s/sha256sums_x86_64=\('.*'\)/sha256sums_x86_64=('${NEW_SHA256}')/" PKGBUILD
+          sed -i -E "/sha256sums_x86_64/,/\)/ s/[a-f0-9]{64}/${NEW_SHA256}/" PKGBUILD
           
           sed -i "s/\tpkgver = .*/\tpkgver = ${NEW_VER}/" .SRCINFO
           sed -i "s/\tpkgrel = .*/\tpkgrel = 1/" .SRCINFO
-          sed -i "s/sha256sums_x86_64 = [a-f0-9]*/sha256sums_x86_64 = ${NEW_SHA256}/" .SRCINFO
+          sed -i -E "s/tencent-wechat-[0-9.]+-x86_64\.deb/tencent-wechat-${NEW_VER}-x86_64.deb/g" .SRCINFO
+          sed -i -E "s/sha256sums_x86_64 = [a-f0-9]*/sha256sums_x86_64 = ${NEW_SHA256}/" .SRCINFO
           cd ..
           
           git config user.name "github-actions[bot]"
