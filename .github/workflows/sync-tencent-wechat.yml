@@ -65,6 +65,7 @@ jobs:
           sed -i "s/^pkgrel=.*/pkgrel=1/" PKGBUILD
           sed -i -E "s/sha256sums_x86_64=\('.*'\)/sha256sums_x86_64=('${NEW_SHA256}')/" PKGBUILD
           sed -i -E "/sha256sums_x86_64/,/\)/ s/[a-f0-9]{64}/${NEW_SHA256}/" PKGBUILD
+          grep -q "${NEW_SHA256}" PKGBUILD || { echo "ERROR: failed to update sha256sums_x86_64 in PKGBUILD"; exit 1; }
           
           sed -i "s/\tpkgver = .*/\tpkgver = ${NEW_VER}/" .SRCINFO
           sed -i "s/\tpkgrel = .*/\tpkgrel = 1/" .SRCINFO
@@ -76,7 +77,7 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add tencent-wechat/PKGBUILD tencent-wechat/.SRCINFO
           git commit -m "chore(release): bump WeChat to ${NEW_VER}" || true
-          git push origin main || true
+          git push origin main
 
       - name: Push to AUR
         if: steps.check_upstream.outputs.has_new_version == 'true' || inputs.force_sync == true
