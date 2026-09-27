@@ -1,0 +1,89 @@
+# Maintainer: Chapman <touch65536@gmail.com>
+
+pkgname=openai-chatgpt
+pkgver=26.911.61220
+pkgrel=1
+pkgdesc="Official ChatGPT desktop application by OpenAI"
+arch=('x86_64' 'aarch64')
+url="https://developers.openai.com/codex/app"
+license=('LicenseRef-OpenAI-Proprietary')
+options=('!strip' '!debug')
+
+depends=(
+  'alsa-lib'
+  'at-spi2-core'
+  'cairo'
+  'dbus'
+  'expat'
+  'gdk-pixbuf2'
+  'glib2'
+  'glibc'
+  'gtk3'
+  'libcups'
+  'libdrm'
+  'libgcc'
+  'libglvnd'
+  'libnotify'
+  'libsecret'
+  'libstdc++'
+  'libusb'
+  'libx11'
+  'libxcb'
+  'libxcomposite'
+  'libxdamage'
+  'libxext'
+  'libxfixes'
+  'libxkbcommon'
+  'libxrandr'
+  'libxss'
+  'mesa'
+  'nspr'
+  'nss'
+  'openssl'
+  'pango'
+  'systemd-libs'
+  'tar'
+  'tpm2-tss'
+  'vulkan-swrast'
+  'xdg-utils'
+  'xz'
+)
+
+optdepends=(
+  'git: Git-backed workflows and plugin synchronization'
+)
+
+provides=('chatgpt' 'chatgpt-bin')
+conflicts=('chatgpt' 'chatgpt-bin' 'chatgpt-desktop-bin')
+backup=('etc/apparmor.d/chatgpt')
+
+_upstream_pkgname="chatgpt-bin"
+_upstream_repo="https://persistent.oaistatic.com/codex-app-prod/linux/arch"
+
+source_x86_64=(
+  "${_upstream_pkgname}-${pkgver}-1-x86_64.pkg.tar.zst::${_upstream_repo}/${pkgver}/x86_64/${_upstream_pkgname}-${pkgver}-1-x86_64.pkg.tar.zst"
+)
+source_aarch64=(
+  "${_upstream_pkgname}-${pkgver}-1-aarch64.pkg.tar.zst::${_upstream_repo}/${pkgver}/aarch64/${_upstream_pkgname}-${pkgver}-1-aarch64.pkg.tar.zst"
+)
+
+noextract=(
+  "${_upstream_pkgname}-${pkgver}-1-x86_64.pkg.tar.zst"
+  "${_upstream_pkgname}-${pkgver}-1-aarch64.pkg.tar.zst"
+)
+
+sha256sums_x86_64=('9bd7fcc582c1779388d0778230533c3fae54b9f54021a4bac936baf90be8a78a')
+sha256sums_aarch64=('a95fe5abedbe7c4af36e38d61253171f8bb0df5c7ad9b27a64fa39c913a6d4f7')
+
+package() {
+  local _archive="${_upstream_pkgname}-${pkgver}-1-${CARCH}.pkg.tar.zst"
+
+  # Extract upstream file hierarchy while excluding upstream package metadata/hooks
+  bsdtar -xf "${srcdir}/${_archive}" -C "${pkgdir}" --exclude='.*'
+
+  # Link custom license file if present
+  if [[ -f "${pkgdir}/usr/lib/chatgpt/LICENSES.chromium.html" ]]; then
+    install -d "${pkgdir}/usr/share/licenses/${pkgname}"
+    ln -sf "/usr/lib/chatgpt/LICENSES.chromium.html" "${pkgdir}/usr/share/licenses/${pkgname}/"
+  fi
+}
