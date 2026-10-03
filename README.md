@@ -14,7 +14,6 @@
 | :--- | :--- | :--- | :--- |
 | **[tencent-wechat](./tencent-wechat)** | ![AUR version](https://img.shields.io/aur/version/tencent-wechat?color=blue&logo=archlinux) | [AUR 页面](https://aur.archlinux.org/packages/tencent-wechat) | • 原生 Wayland 自动探测与 Fcitx5 `text-input-v3` 选词框跟随<br>• 真实宿主 `$HOME` 映射（彻底解决文件管理器拖拽发送失效问题）<br>• 敏感隐私目录遮蔽（使用空 tmpfs 隔离保护 `~/.ssh` 和 `~/.gnupg`）<br>• 历史聊天记录数据库防分化软链自动维护 |
 | **[tencent-qq](./tencent-qq)** | ![AUR version](https://img.shields.io/aur/version/tencent-qq?color=blue&logo=archlinux) | [AUR 页面](https://aur.archlinux.org/packages/tencent-qq) | • 原生 Ozone Wayland 自动探测与 `text-input-v3` 输入法光标跟随<br>• 轻量级 Bubblewrap 隐私沙盒隔离与敏感密钥遮蔽<br>• 自动清理官方包内置的易损组件 `libssh2.so.1`<br>• 标准化 `/usr/bin/qq` 与 `/usr/bin/tencent-qq` 指令 |
-| **[openai-chatgpt](./openai-chatgpt)** | ![AUR version](https://img.shields.io/aur/version/openai-chatgpt?color=blue&logo=archlinux) | [AUR 页面](https://aur.archlinux.org/packages/openai-chatgpt) | • OpenAI 官方原生 Arch Linux 二进制构建分发<br>• 安全剔除上游未经许可静默篡改 `/etc/pacman.conf` 的侵入式脚本<br>• 规范集成官方桌面图标与 `/usr/bin/chatgpt` 执行入口 |
 
 ---
 
@@ -32,11 +31,6 @@ yay -S tencent-wechat
 paru -S tencent-qq
 # 或
 yay -S tencent-qq
-
-# 安装 OpenAI 官方 ChatGPT 原生客户端
-paru -S openai-chatgpt
-# 或
-yay -S openai-chatgpt
 ```
 
 ---
@@ -47,8 +41,7 @@ yay -S openai-chatgpt
 aur-packages/
 ├── .github/workflows/
 │   ├── sync-tencent-wechat.yml   # 微信每日上游版本检测与 AUR 自动同步
-│   ├── sync-tencent-qq.yml       # QQ 每日上游版本检测与 AUR 自动同步
-│   └── sync-openai-chatgpt.yml   # ChatGPT 上游检测与 AUR 自动同步
+│   └── sync-tencent-qq.yml       # QQ 每日上游版本检测与 AUR 自动同步
 │
 ├── tencent-wechat/               # 微信 AUR 软件包工程
 │   ├── PKGBUILD                  # 构建脚本
@@ -57,16 +50,12 @@ aur-packages/
 │   ├── wechat.desktop            # 桌面快捷方式
 │   └── LICENSE                   # 授权声明
 │
-├── tencent-qq/                   # QQ AUR 软件包工程
-│   ├── PKGBUILD                  # 构建脚本
-│   ├── .SRCINFO                  # AUR 索引元数据
-│   ├── qq.sh                     # 原生 Wayland 与沙盒启动器
-│   ├── qq.desktop                # 桌面快捷方式
-│   └── LICENSE                   # 授权声明
-│
-└── openai-chatgpt/               # ChatGPT AUR 软件包工程
+└── tencent-qq/                   # QQ AUR 软件包工程
     ├── PKGBUILD                  # 构建脚本
-    └── .SRCINFO                  # AUR 索引元数据
+    ├── .SRCINFO                  # AUR 索引元数据
+    ├── qq.sh                     # 原生 Wayland 与沙盒启动器
+    ├── qq.desktop                # 桌面快捷方式
+    └── LICENSE                   # 授权声明
 ```
 
 ---

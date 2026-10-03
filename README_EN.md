@@ -14,7 +14,6 @@ This monorepo manages PKGBUILDs and runtime wrappers for packages maintained on 
 | :--- | :--- | :--- | :--- |
 | **[tencent-wechat](./tencent-wechat)** | ![AUR version](https://img.shields.io/aur/version/tencent-wechat?color=blue&logo=archlinux) | [AUR](https://aur.archlinux.org/packages/tencent-wechat) | • Native Wayland auto-detection & Fcitx5 `text-input-v3` candidate box tracking<br>• Real host `$HOME` bind (resolves file manager drag-and-drop sending issues)<br>• Sensitive directory masking (empty tmpfs isolation for `~/.ssh` and `~/.gnupg`)<br>• Automatic symlink maintenance to prevent chat history database fragmentation |
 | **[tencent-qq](./tencent-qq)** | ![AUR version](https://img.shields.io/aur/version/tencent-qq?color=blue&logo=archlinux) | [AUR](https://aur.archlinux.org/packages/tencent-qq) | • Native Ozone Wayland auto-detection & `text-input-v3` IME cursor tracking<br>• Lightweight Bubblewrap privacy sandbox with key masking<br>• Automated cleanup of vulnerable bundled `libssh2.so.1`<br>• Standardized `/usr/bin/qq` and `/usr/bin/tencent-qq` commands |
-| **[openai-chatgpt](./openai-chatgpt)** | ![AUR version](https://img.shields.io/aur/version/openai-chatgpt?color=blue&logo=archlinux) | [AUR](https://aur.archlinux.org/packages/openai-chatgpt) | • Official native Arch Linux binary packaging by OpenAI<br>• Safely removes invasive upstream post-install scripts that tamper with `/etc/pacman.conf`<br>• Standardized official desktop entry and `/usr/bin/chatgpt` executable |
 
 ---
 
@@ -32,11 +31,6 @@ yay -S tencent-wechat
 paru -S tencent-qq
 # or
 yay -S tencent-qq
-
-# OpenAI ChatGPT
-paru -S openai-chatgpt
-# or
-yay -S openai-chatgpt
 ```
 
 ---
@@ -47,8 +41,7 @@ yay -S openai-chatgpt
 aur-packages/
 ├── .github/workflows/
 │   ├── sync-tencent-wechat.yml   # Daily upstream check & auto-sync to AUR for WeChat
-│   ├── sync-tencent-qq.yml       # Daily upstream check & auto-sync to AUR for QQ
-│   └── sync-openai-chatgpt.yml   # Daily upstream check & auto-sync to AUR for ChatGPT
+│   └── sync-tencent-qq.yml       # Daily upstream check & auto-sync to AUR for QQ
 │
 ├── tencent-wechat/               # WeChat AUR package files
 │   ├── PKGBUILD                  # Package build script
@@ -57,16 +50,12 @@ aur-packages/
 │   ├── wechat.desktop            # Desktop entry
 │   └── LICENSE                   # License statement
 │
-├── tencent-qq/                   # QQ AUR package files
-│   ├── PKGBUILD                  # Package build script
-│   ├── .SRCINFO                  # AUR package metadata
-│   ├── qq.sh                     # Native Wayland & sandbox launcher
-│   ├── qq.desktop                # Desktop entry
-│   └── LICENSE                   # License statement
-│
-└── openai-chatgpt/               # ChatGPT AUR package files
+└── tencent-qq/                   # QQ AUR package files
     ├── PKGBUILD                  # Package build script
-    └── .SRCINFO                  # AUR package metadata
+    ├── .SRCINFO                  # AUR package metadata
+    ├── qq.sh                     # Native Wayland & sandbox launcher
+    ├── qq.desktop                # Desktop entry
+    └── LICENSE                   # License statement
 ```
 
 ---
