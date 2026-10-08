@@ -14,6 +14,7 @@
 | :--- | :--- | :--- | :--- |
 | **[tencent-wechat](./tencent-wechat)** | ![AUR version](https://img.shields.io/aur/version/tencent-wechat?color=blue&logo=archlinux) | [AUR 页面](https://aur.archlinux.org/packages/tencent-wechat) | • 原生 Wayland 自动探测与 Fcitx5 `text-input-v3` 选词框跟随<br>• 真实宿主 `$HOME` 映射（彻底解决文件管理器拖拽发送失效问题）<br>• 敏感隐私目录遮蔽（使用空 tmpfs 隔离保护 `~/.ssh` 和 `~/.gnupg`）<br>• 历史聊天记录数据库防分化软链自动维护 |
 | **[tencent-qq](./tencent-qq)** | ![AUR version](https://img.shields.io/aur/version/tencent-qq?color=blue&logo=archlinux) | [AUR 页面](https://aur.archlinux.org/packages/tencent-qq) | • 原生 Ozone Wayland 自动探测与 `text-input-v3` 输入法光标跟随<br>• 轻量级 Bubblewrap 隐私沙盒隔离与敏感密钥遮蔽<br>• 自动清理官方包内置的易损组件 `libssh2.so.1`<br>• 标准化 `/usr/bin/qq` 与 `/usr/bin/tencent-qq` 指令 |
+| **[eusoft-eudic](./eusoft-eudic)** | ![AUR version](https://img.shields.io/aur/version/eusoft-eudic?color=blue&logo=archlinux) | [AUR 页面](https://aur.archlinux.org/packages/eusoft-eudic) | • 欧路词典 Linux 官方客户端社区重打包与维护<br>• 移除过时捆绑库与冲突的 `libxkbcommon-x11`，彻底修复启动崩溃（SIGSEGV）<br>• 标准化 `/usr/bin/eudic` 与 `/usr/bin/eusoft-eudic` 快捷指令及桌面图标 |
 
 ---
 
@@ -31,6 +32,11 @@ yay -S tencent-wechat
 paru -S tencent-qq
 # 或
 yay -S tencent-qq
+
+# 安装欧路词典 Linux 社区版
+paru -S eusoft-eudic
+# 或
+yay -S eusoft-eudic
 ```
 
 ---
@@ -41,7 +47,8 @@ yay -S tencent-qq
 aur-packages/
 ├── .github/workflows/
 │   ├── sync-tencent-wechat.yml   # 微信每日上游版本检测与 AUR 自动同步
-│   └── sync-tencent-qq.yml       # QQ 每日上游版本检测与 AUR 自动同步
+│   ├── sync-tencent-qq.yml       # QQ 每日上游版本检测与 AUR 自动同步
+│   └── sync-eusoft-eudic.yml     # 欧路词典每日上游版本检测与 AUR 自动同步
 │
 ├── tencent-wechat/               # 微信 AUR 软件包工程
 │   ├── PKGBUILD                  # 构建脚本
@@ -50,11 +57,18 @@ aur-packages/
 │   ├── wechat.desktop            # 桌面快捷方式
 │   └── LICENSE                   # 授权声明
 │
-└── tencent-qq/                   # QQ AUR 软件包工程
+├── tencent-qq/                   # QQ AUR 软件包工程
+│   ├── PKGBUILD                  # 构建脚本
+│   ├── .SRCINFO                  # AUR 索引元数据
+│   ├── qq.sh                     # 原生 Wayland 与沙盒启动器
+│   ├── qq.desktop                # 桌面快捷方式
+│   └── LICENSE                   # 授权声明
+│
+└── eusoft-eudic/                 # 欧路词典 AUR 软件包工程
     ├── PKGBUILD                  # 构建脚本
     ├── .SRCINFO                  # AUR 索引元数据
-    ├── qq.sh                     # 原生 Wayland 与沙盒启动器
-    ├── qq.desktop                # 桌面快捷方式
+    ├── eudic.sh                  # 平台适配与启动包装器
+    ├── eusoft-eudic.desktop      # 桌面快捷方式
     └── LICENSE                   # 授权声明
 ```
 

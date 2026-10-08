@@ -1,0 +1,59 @@
+name: Check & Auto-Update Eudic to AUR
+
+on:
+  schedule:
+    # Run every day at 03:00 UTC (11:00 AM CST)
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+    inputs:
+      force_sync:
+        description: 'Force sync and push to AUR even if version has not changed'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  check-and-update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Push to AUR
+        if: inputs.force_sync == true || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
+        env:
+          AUR_SSH_PRIVATE_KEY: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+        run: |
+          if [ -z "$AUR_SSH_PRIVATE_KEY" ]; then
+            echo "Error: AUR_SSH_PRIVATE_KEY secret is not set in GitHub Secrets!"
+            exit 1
+          fi
+          
+          mkdir -p ~/.ssh
+          echo "$AUR_SSH_PRIVATE_KEY" > ~/.ssh/aur
+          chmod 600 ~/.ssh/aur
+          ssh-keyscan -t ed25519,rsa aur.archlinux.org >> ~/.ssh/known_hosts
+          
+          AUR_DIR="/tmp/aur-eudic"
+          rm -rf "$AUR_DIR"
+          mkdir -p "$AUR_DIR"
+          cd "$AUR_DIR"
+          
+          git init -b master
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git remote add origin ssh://aur@aur.archlinux.org/eusoft-eudic.git
+          GIT_SSH_COMMAND="ssh -i ~/.ssh/aur" git pull origin master || true
+          
+          cp -f $GITHUB_WORKSPACE/eusoft-eudic/PKGBUILD \
+                $GITHUB_WORKSPACE/eusoft-eudic/.SRCINFO \
+                $GITHUB_WORKSPACE/eusoft-eudic/eudic.sh \
+                $GITHUB_WORKSPACE/eusoft-eudic/eusoft-eudic.desktop \
+                $GITHUB_WORKSPACE/eusoft-eudic/LICENSE \
+                "$AUR_DIR/"
+          
+          git add -A
+          git commit -m "Update eusoft-eudic" || exit 0
+          GIT_SSH_COMMAND="ssh -i ~/.ssh/aur" git push -u origin master
