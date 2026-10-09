@@ -15,7 +15,13 @@ This monorepo manages PKGBUILDs and runtime wrappers for packages maintained on 
 | **[tencent-wechat](./tencent-wechat)** | ![AUR version](https://img.shields.io/aur/version/tencent-wechat?color=blue&logo=archlinux) | [AUR](https://aur.archlinux.org/packages/tencent-wechat) | • Native Wayland auto-detection & Fcitx5 `text-input-v3` candidate box tracking<br>• Real host `$HOME` bind (resolves file manager drag-and-drop sending issues)<br>• Sensitive directory masking (empty tmpfs isolation for `~/.ssh` and `~/.gnupg`)<br>• Automatic symlink maintenance to prevent chat history database fragmentation |
 | **[tencent-qq](./tencent-qq)** | ![AUR version](https://img.shields.io/aur/version/tencent-qq?color=blue&logo=archlinux) | [AUR](https://aur.archlinux.org/packages/tencent-qq) | • Native Ozone Wayland auto-detection & `text-input-v3` IME cursor tracking<br>• Lightweight Bubblewrap privacy sandbox with key masking<br>• Automated cleanup of vulnerable bundled `libssh2.so.1`<br>• Standardized `/usr/bin/qq` and `/usr/bin/tencent-qq` commands |
 | **[eusoft-eudic](./eusoft-eudic)** | ![AUR version](https://img.shields.io/aur/version/eusoft-eudic?color=blue&logo=archlinux) | [AUR](https://aur.archlinux.org/packages/eusoft-eudic) | • Official Eudic Linux client community repackage & maintenance<br>• Cleaned up obsolete bundled libraries and conflicting `libxkbcommon-x11` (fixing SIGSEGV crash on startup)<br>• Standardized `/usr/bin/eudic` & `/usr/bin/eusoft-eudic` commands and desktop icons |
+| **[eusoft-frhelper](./eusoft-frhelper)** | ![AUR version](https://img.shields.io/aur/version/eusoft-frhelper?color=blue&logo=archlinux) | [AUR](https://aur.archlinux.org/packages/eusoft-frhelper) | • Official Frhelper Linux client community repackage & maintenance<br>• Cleaned up obsolete bundled libraries and conflicting `libxkbcommon-x11` (fixing SIGSEGV crash on startup)<br>• Standardized `/usr/bin/frhelper` & `/usr/bin/eusoft-frhelper` commands and desktop icons |
+| **[eusoft-dehelper](./eusoft-dehelper)** | ![AUR version](https://img.shields.io/aur/version/eusoft-dehelper?color=blue&logo=archlinux) | [AUR](https://aur.archlinux.org/packages/eusoft-dehelper) | • Official Dehelper Linux client community repackage & maintenance<br>• Cleaned up obsolete bundled libraries and conflicting `libxkbcommon-x11` (fixing SIGSEGV crash on startup)<br>• Standardized `/usr/bin/dehelper` & `/usr/bin/eusoft-dehelper` commands and desktop icons |
+| **[eusoft-eshelper](./eusoft-eshelper)** | ![AUR version](https://img.shields.io/aur/version/eusoft-eshelper?color=blue&logo=archlinux) | [AUR](https://aur.archlinux.org/packages/eusoft-eshelper) | • Official Eshelper Linux client community repackage & maintenance<br>• Cleaned up obsolete bundled libraries and conflicting `libxkbcommon-x11` (fixing SIGSEGV crash on startup)<br>• Standardized `/usr/bin/eshelper` & `/usr/bin/eusoft-eshelper` commands and desktop icons |
 | **[eusoft-ting-en](./eusoft-ting-en)** | ![AUR version](https://img.shields.io/aur/version/eusoft-ting-en?color=blue&logo=archlinux) | [AUR](https://aur.archlinux.org/packages/eusoft-ting-en) | • Official Daily English Listening Linux client community repackage & maintenance<br>• Native Ozone Wayland auto-detection & custom user flags loading<br>• Standardized `/usr/bin/ting-en` & `/usr/bin/eusoft-ting-en` commands and desktop icons |
+| **[eusoft-ting-fr](./eusoft-ting-fr)** | ![AUR version](https://img.shields.io/aur/version/eusoft-ting-fr?color=blue&logo=archlinux) | [AUR](https://aur.archlinux.org/packages/eusoft-ting-fr) | • Official Daily French Listening Linux client community repackage & maintenance<br>• Native Ozone Wayland auto-detection & custom user flags loading<br>• Standardized `/usr/bin/ting-fr` & `/usr/bin/eusoft-ting-fr` commands and desktop icons |
+| **[eusoft-ting-de](./eusoft-ting-de)** | ![AUR version](https://img.shields.io/aur/version/eusoft-ting-de?color=blue&logo=archlinux) | [AUR](https://aur.archlinux.org/packages/eusoft-ting-de) | • Official Daily German Listening Linux client community repackage & maintenance<br>• Native Ozone Wayland auto-detection & custom user flags loading<br>• Standardized `/usr/bin/ting-de` & `/usr/bin/eusoft-ting-de` commands and desktop icons |
+| **[eusoft-ting-es](./eusoft-ting-es)** | ![AUR version](https://img.shields.io/aur/version/eusoft-ting-es?color=blue&logo=archlinux) | [AUR](https://aur.archlinux.org/packages/eusoft-ting-es) | • Official Daily Spanish Listening Linux client community repackage & maintenance<br>• Native Ozone Wayland auto-detection & custom user flags loading<br>• Standardized `/usr/bin/ting-es` & `/usr/bin/eusoft-ting-es` commands and desktop icons |
 
 ---
 
@@ -24,25 +30,21 @@ This monorepo manages PKGBUILDs and runtime wrappers for packages maintained on 
 Install using your preferred AUR helper (e.g., `paru` or `yay`):
 
 ```bash
-# Tencent WeChat
+# Tencent applications
 paru -S tencent-wechat
-# or
-yay -S tencent-wechat
-
-# Tencent QQ
 paru -S tencent-qq
-# or
-yay -S tencent-qq
 
-# Eudic
-paru -S eusoft-eudic
-# or
-yay -S eusoft-eudic
+# Eusoft dictionaries
+paru -S eusoft-eudic      # Eudic (English / Comprehensive)
+paru -S eusoft-frhelper   # Frhelper (French)
+paru -S eusoft-dehelper   # Dehelper (German)
+paru -S eusoft-eshelper   # Eshelper (Spanish)
 
-# Daily English Listening
-paru -S eusoft-ting-en
-# or
-yay -S eusoft-ting-en
+# Eusoft listening suites
+paru -S eusoft-ting-en    # Daily English Listening
+paru -S eusoft-ting-fr    # Daily French Listening
+paru -S eusoft-ting-de    # Daily German Listening
+paru -S eusoft-ting-es    # Daily Spanish Listening
 ```
 
 ---
@@ -55,35 +57,24 @@ aur-packages/
 │   ├── sync-tencent-wechat.yml   # Daily upstream check & auto-sync to AUR for WeChat
 │   ├── sync-tencent-qq.yml       # Daily upstream check & auto-sync to AUR for QQ
 │   ├── sync-eusoft-eudic.yml     # Daily upstream check & auto-sync to AUR for Eudic
-│   └── sync-eusoft-ting-en.yml   # Daily upstream check & auto-sync to AUR for Daily English Listening
+│   ├── sync-eusoft-frhelper.yml  # Daily upstream check & auto-sync to AUR for Frhelper
+│   ├── sync-eusoft-dehelper.yml  # Daily upstream check & auto-sync to AUR for Dehelper
+│   ├── sync-eusoft-eshelper.yml  # Daily upstream check & auto-sync to AUR for Eshelper
+│   ├── sync-eusoft-ting-en.yml   # Daily upstream check & auto-sync to AUR for Daily English Listening
+│   ├── sync-eusoft-ting-fr.yml   # Daily upstream check & auto-sync to AUR for Daily French Listening
+│   ├── sync-eusoft-ting-de.yml   # Daily upstream check & auto-sync to AUR for Daily German Listening
+│   └── sync-eusoft-ting-es.yml   # Daily upstream check & auto-sync to AUR for Daily Spanish Listening
 │
 ├── tencent-wechat/               # WeChat AUR package files
-│   ├── PKGBUILD                  # Package build script
-│   ├── .SRCINFO                  # AUR package metadata
-│   ├── wechat.sh                 # Native Wayland & sandbox launcher
-│   ├── wechat.desktop            # Desktop entry
-│   └── LICENSE                   # License statement
-│
 ├── tencent-qq/                   # QQ AUR package files
-│   ├── PKGBUILD                  # Package build script
-│   ├── .SRCINFO                  # AUR package metadata
-│   ├── qq.sh                     # Native Wayland & sandbox launcher
-│   ├── qq.desktop                # Desktop entry
-│   └── LICENSE                   # License statement
-│
 ├── eusoft-eudic/                 # Eudic AUR package files
-│   ├── PKGBUILD                  # Package build script
-│   ├── .SRCINFO                  # AUR package metadata
-│   ├── eudic.sh                  # Platform launcher wrapper
-│   ├── eusoft-eudic.desktop      # Desktop entry
-│   └── LICENSE                   # License statement
-│
-└── eusoft-ting-en/               # Daily English Listening AUR package files
-    ├── PKGBUILD                  # Package build script
-    ├── .SRCINFO                  # AUR package metadata
-    ├── ting-en.sh                # Platform launcher wrapper
-    ├── eusoft-ting-en.desktop    # Desktop entry
-    └── LICENSE                   # License statement
+├── eusoft-frhelper/              # Frhelper AUR package files
+├── eusoft-dehelper/              # Dehelper AUR package files
+├── eusoft-eshelper/              # Eshelper AUR package files
+├── eusoft-ting-en/               # Daily English Listening AUR package files
+├── eusoft-ting-fr/               # Daily French Listening AUR package files
+├── eusoft-ting-de/               # Daily German Listening AUR package files
+└── eusoft-ting-es/               # Daily Spanish Listening AUR package files
 ```
 
 ---
@@ -104,5 +95,5 @@ Each package directory is independently maintained and synchronized with the off
 
 ## Disclaimer & License
 
-- The underlying software binaries (such as WeChat, QQ, ChatGPT, etc.) are proprietary products owned by their respective copyright holders (Tencent Technology, OpenAI, etc.). This repository provides only community packaging scripts and runtime wrappers for Arch Linux.
+- The underlying software binaries (such as WeChat, QQ, Eudic, Ting, etc.) are proprietary products owned by their respective copyright holders (Tencent Technology, Shanghai Qianyan Information Technology, etc.). This repository provides only community packaging scripts and runtime wrappers for Arch Linux.
 - Packaging scripts, wrapper scripts, and configuration files created in this repository are provided under open-source community-compatible terms.
