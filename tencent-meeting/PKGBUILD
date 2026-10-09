@@ -152,8 +152,6 @@ package() {
 
     # Install desktop entry
     install -Dm644 "${srcdir}/tencent-meeting.desktop" "${pkgdir}/usr/share/applications/${pkgname}.desktop"
-    ln -sf "${pkgname}.desktop" "${pkgdir}/usr/share/applications/wemeet.desktop"
-    ln -sf "${pkgname}.desktop" "${pkgdir}/usr/share/applications/wemeetapp.desktop"
 
     # Install license
     install -Dm644 "${srcdir}/LICENSE" "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
