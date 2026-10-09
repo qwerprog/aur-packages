@@ -14,6 +14,7 @@ This monorepo manages PKGBUILDs and runtime wrappers for packages maintained on 
 | :--- | :--- | :--- | :--- |
 | **[tencent-wechat](./tencent-wechat)** | ![AUR version](https://img.shields.io/aur/version/tencent-wechat?color=blue&logo=archlinux) | [AUR](https://aur.archlinux.org/packages/tencent-wechat) | • Native Wayland auto-detection & Fcitx5 `text-input-v3` candidate box tracking<br>• Real host `$HOME` bind (resolves file manager drag-and-drop sending issues)<br>• Sensitive directory masking (empty tmpfs isolation for `~/.ssh` and `~/.gnupg`)<br>• Automatic symlink maintenance to prevent chat history database fragmentation |
 | **[tencent-qq](./tencent-qq)** | ![AUR version](https://img.shields.io/aur/version/tencent-qq?color=blue&logo=archlinux) | [AUR](https://aur.archlinux.org/packages/tencent-qq) | • Native Ozone Wayland auto-detection & `text-input-v3` IME cursor tracking<br>• Lightweight Bubblewrap privacy sandbox with key masking<br>• Automated cleanup of vulnerable bundled `libssh2.so.1`<br>• Standardized `/usr/bin/qq` and `/usr/bin/tencent-qq` commands |
+| **[tencent-meeting](./tencent-meeting)** | ![AUR version](https://img.shields.io/aur/version/tencent-meeting?color=blue&logo=archlinux) | [AUR](https://aur.archlinux.org/packages/tencent-meeting) | • Wayland / XWayland screen sharing compatibility and dark mode Fusion style fix<br>• Bundled C wrapper (`wrap.c`) fixing OpenSSL 3, PulseAudio/PipeWire sink hardware detection, and X11 crashes<br>• Lightweight Bubblewrap privacy sandbox with key masking<br>• Standardized `/usr/bin/tencent-meeting` and `/usr/bin/wemeet` commands and desktop icons |
 | **[eusoft-eudic](./eusoft-eudic)** | ![AUR version](https://img.shields.io/aur/version/eusoft-eudic?color=blue&logo=archlinux) | [AUR](https://aur.archlinux.org/packages/eusoft-eudic) | • Official Eudic Linux client community repackage & maintenance<br>• Cleaned up obsolete bundled libraries and conflicting `libxkbcommon-x11` (fixing SIGSEGV crash on startup)<br>• Standardized `/usr/bin/eudic` & `/usr/bin/eusoft-eudic` commands and desktop icons |
 | **[eusoft-frhelper](./eusoft-frhelper)** | ![AUR version](https://img.shields.io/aur/version/eusoft-frhelper?color=blue&logo=archlinux) | [AUR](https://aur.archlinux.org/packages/eusoft-frhelper) | • Official Frhelper Linux client community repackage & maintenance<br>• Cleaned up obsolete bundled libraries and conflicting `libxkbcommon-x11` (fixing SIGSEGV crash on startup)<br>• Standardized `/usr/bin/frhelper` & `/usr/bin/eusoft-frhelper` commands and desktop icons |
 | **[eusoft-dehelper](./eusoft-dehelper)** | ![AUR version](https://img.shields.io/aur/version/eusoft-dehelper?color=blue&logo=archlinux) | [AUR](https://aur.archlinux.org/packages/eusoft-dehelper) | • Official Dehelper Linux client community repackage & maintenance<br>• Cleaned up obsolete bundled libraries and conflicting `libxkbcommon-x11` (fixing SIGSEGV crash on startup)<br>• Standardized `/usr/bin/dehelper` & `/usr/bin/eusoft-dehelper` commands and desktop icons |
@@ -33,6 +34,7 @@ Install using your preferred AUR helper (e.g., `paru` or `yay`):
 # Tencent applications
 paru -S tencent-wechat
 paru -S tencent-qq
+paru -S tencent-meeting
 
 # Eusoft dictionaries
 paru -S eusoft-eudic      # Eudic (English / Comprehensive)
@@ -56,6 +58,7 @@ aur-packages/
 ├── .github/workflows/
 │   ├── sync-tencent-wechat.yml   # Daily upstream check & auto-sync to AUR for WeChat
 │   ├── sync-tencent-qq.yml       # Daily upstream check & auto-sync to AUR for QQ
+│   ├── sync-tencent-meeting.yml  # Daily upstream check & auto-sync to AUR for Tencent Meeting
 │   ├── sync-eusoft-eudic.yml     # Daily upstream check & auto-sync to AUR for Eudic
 │   ├── sync-eusoft-frhelper.yml  # Daily upstream check & auto-sync to AUR for Frhelper
 │   ├── sync-eusoft-dehelper.yml  # Daily upstream check & auto-sync to AUR for Dehelper
@@ -67,6 +70,7 @@ aur-packages/
 │
 ├── tencent-wechat/               # WeChat AUR package files
 ├── tencent-qq/                   # QQ AUR package files
+├── tencent-meeting/              # Tencent Meeting AUR package files
 ├── eusoft-eudic/                 # Eudic AUR package files
 ├── eusoft-frhelper/              # Frhelper AUR package files
 ├── eusoft-dehelper/              # Dehelper AUR package files
@@ -95,5 +99,5 @@ Each package directory is independently maintained and synchronized with the off
 
 ## Disclaimer & License
 
-- The underlying software binaries (such as WeChat, QQ, Eudic, Ting, etc.) are proprietary products owned by their respective copyright holders (Tencent Technology, Shanghai Qianyan Information Technology, etc.). This repository provides only community packaging scripts and runtime wrappers for Arch Linux.
+- The underlying software binaries (such as WeChat, QQ, Tencent Meeting, Eudic, Ting, etc.) are proprietary products owned by their respective copyright holders (Tencent Technology, Shanghai Qianyan Information Technology, etc.). This repository provides only community packaging scripts and runtime wrappers for Arch Linux.
 - Packaging scripts, wrapper scripts, and configuration files created in this repository are provided under open-source community-compatible terms.

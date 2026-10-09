@@ -1,0 +1,160 @@
+# Maintainer: Chapman <touch65536@gmail.com>
+
+pkgname=tencent-meeting
+_pkgname=wemeet
+pkgver=3.26.10.401
+_pkgver_arm=3.26.10.401
+_pkgver_loong=3.26.10.401
+_x86_md5=72e0e0023e1d1e6d4123fba28821aea1
+_arm_md5=c06d6bc4a3370dbfb2f43bbc6ff8969e
+_loong_md5=399aded330e344aa1327064170be86e8
+pkgrel=1
+pkgdesc="Tencent Meeting (腾讯会议 / WeMeet) Linux client with Wayland compatibility and Bubblewrap sandbox"
+arch=('x86_64' 'aarch64' 'loong64')
+url="https://meeting.tencent.com/"
+license=('LicenseRef-Proprietary')
+provides=('wemeet' 'tencent-meeting' 'wemeet-bin')
+conflicts=('wemeet' 'wemeet-bin')
+depends=(
+    'alsa-lib'
+    'at-spi2-core'
+    'bash'
+    'gcc-libs'
+    'glibc'
+    'hicolor-icon-theme'
+    'libglvnd'
+    'libpulse'
+    'libx11'
+    'libxcomposite'
+    'libxdamage'
+    'libxext'
+    'libxfixes'
+    'libxinerama'
+    'libxrandr'
+    'libyuv'
+    'nss'
+    'openssl'
+    'qt5-base'
+    'qt5-declarative'
+    'qt5-svg'
+    'qt5-x11extras'
+    'systemd-libs'
+    'zlib'
+)
+optdepends=(
+    'bubblewrap: Privacy sandbox isolation and dark mode text color fix'
+    'qt5-wayland: Native Wayland support'
+)
+makedepends=(
+    'patchelf'
+)
+options=(!strip !debug)
+
+source=(
+    "meeting.sh"
+    "tencent-meeting.desktop"
+    "wrap.c"
+    "LICENSE"
+)
+source_x86_64=("${pkgname}-${pkgver}-x86_64.deb::https://updatecdn.meeting.qq.com/cos/${_x86_md5}/TencentMeeting_0300000000_${pkgver}_x86_64_default.publish.officialwebsite.deb")
+source_aarch64=("${pkgname}-${_pkgver_arm}-aarch64.deb::https://updatecdn.meeting.qq.com/cos/${_arm_md5}/TencentMeeting_0300000000_${_pkgver_arm}_arm64_default.publish.officialwebsite.deb")
+source_loong64=("${pkgname}-${_pkgver_loong}-loong64.deb::https://updatecdn.meeting.qq.com/cos/${_loong_md5}/TencentMeeting_0300000000_${_pkgver_loong}_loongarch64_default.publish.officialwebsite.deb")
+
+noextract=(
+    "${pkgname}-${pkgver}-x86_64.deb"
+    "${pkgname}-${_pkgver_arm}-aarch64.deb"
+    "${pkgname}-${_pkgver_loong}-loong64.deb"
+)
+
+sha256sums=(
+    '27099a22a16fc730ac7363d76437d15c2382534a84adc531f3fff3c6a1f07908'
+    '274309c44a6984565a14f310fd077178c43cdaa662ce3ba23f169db68d7ecf75'
+    '283d39dcff388c1c2c578956673b55d96e94c2cb7733ce6ca87c63916b06e9c6'
+    'ae4739e0856aaa1c16e1e9bd2a7157ac1519f3f7d0365cdd365715495f9e3f78'
+)
+sha256sums_x86_64=(
+    '70f37b029209c0ef91be9813eebf6650c6cb9a00f7c718490158773e2fe6acaf'
+)
+sha256sums_aarch64=(
+    '5b9d04d5b9aa24b3c353b158d2a34a3e5875cfc03d133d4673e36b1d0841c202'
+)
+sha256sums_loong64=(
+    '2746b5f411500de9d95a3f3db565d251c27b924388b254e788f840398fffe00e'
+)
+
+prepare() {
+    local _deb_file
+    case "${CARCH}" in
+        x86_64) _deb_file="${pkgname}-${pkgver}-x86_64.deb" ;;
+        aarch64) _deb_file="${pkgname}-${_pkgver_arm}-aarch64.deb" ;;
+        loong64) _deb_file="${pkgname}-${_pkgver_loong}-loong64.deb" ;;
+    esac
+
+    bsdtar -xf "${_deb_file}" data.tar.xz
+    tar xpf data.tar.xz
+
+    # Patch qt.conf Prefix
+    sed -i "s|^Prefix.*|Prefix = /usr/lib/${_pkgname}|" "opt/${_pkgname}/bin/qt.conf"
+
+    # Set clean rpath on main binary and modules to use /usr/lib/wemeet
+    patchelf --set-rpath '$ORIGIN:/usr/lib/wemeet' "opt/${_pkgname}/bin/wemeetapp"
+    find "opt/${_pkgname}/bin/modules" -type f -name '*.so' | xargs -I {} patchelf --set-rpath '$ORIGIN:/usr/lib/wemeet' {}
+}
+
+build() {
+    cd "${srcdir}"
+    read -ra openssl_args < <(pkgconf --libs openssl)
+    read -ra libpulse_args < <(pkgconf --cflags --libs libpulse)
+    "${CC:-cc}" ${CFLAGS} -Wall -Wextra -fPIC -shared "${openssl_args[@]}" "${libpulse_args[@]}" -o libwemeetwrap.so wrap.c -D WRAP_FORCE_SINK_HARDWARE
+}
+
+package() {
+    # Extract desktop icons
+    install -Dm644 "${srcdir}/opt/${_pkgname}/wemeet.svg" "${pkgdir}/usr/share/icons/hicolor/scalable/apps/${pkgname}.svg"
+    ln -sf "${pkgname}.svg" "${pkgdir}/usr/share/icons/hicolor/scalable/apps/wemeet.svg"
+    ln -sf "${pkgname}.svg" "${pkgdir}/usr/share/icons/hicolor/scalable/apps/wemeetapp.svg"
+
+    for res in 16 32 64 128 256; do
+        if [[ -f "${srcdir}/opt/${_pkgname}/icons/hicolor/${res}x${res}/mimetypes/wemeetapp.png" ]]; then
+            install -Dm644 "${srcdir}/opt/${_pkgname}/icons/hicolor/${res}x${res}/mimetypes/wemeetapp.png" \
+                "${pkgdir}/usr/share/icons/hicolor/${res}x${res}/apps/${pkgname}.png"
+            ln -sf "${pkgname}.png" "${pkgdir}/usr/share/icons/hicolor/${res}x${res}/apps/wemeet.png"
+            ln -sf "${pkgname}.png" "${pkgdir}/usr/share/icons/hicolor/${res}x${res}/apps/wemeetapp.png"
+        fi
+    done
+
+    # Install libraries into /usr/lib/wemeet
+    install -dm755 "${pkgdir}/usr/lib/${_pkgname}"
+    install -Dm755 "${srcdir}/opt/${_pkgname}/lib"/lib{desktop_common,crash_guard,ImSDK,nxui*,qt_*,ui*,wemeet*,xcast*,xnn*}.so \
+        -t "${pkgdir}/usr/lib/${_pkgname}"
+    if [[ -f "${srcdir}/opt/${_pkgname}/lib/libcrbase.so" ]]; then
+        install -Dm755 "${srcdir}/opt/${_pkgname}/lib/libcrbase.so" -t "${pkgdir}/usr/lib/${_pkgname}"
+    fi
+    cp -r "${srcdir}/opt/${_pkgname}"/{plugins,resources,translations} "${pkgdir}/usr/lib/${_pkgname}/"
+    cp -a "${srcdir}/opt/${_pkgname}/lib"/lib{Qt,icu}* "${pkgdir}/usr/lib/${_pkgname}/"
+
+    # Patch rpath for all libraries in /usr/lib/wemeet
+    find "${pkgdir}/usr/lib/${_pkgname}" -type f -name '*.so*' | xargs -I {} patchelf --set-rpath '$ORIGIN:/usr/lib/wemeet' {}
+
+    # Install wrapper library
+    install -Dm755 "${srcdir}/libwemeetwrap.so" "${pkgdir}/usr/lib/${_pkgname}/libwemeetwrap.so"
+
+    # Install application binaries to /opt/wemeet
+    install -dm755 "${pkgdir}/opt/${_pkgname}"
+    cp -r "${srcdir}/opt/${_pkgname}/bin" "${pkgdir}/opt/${_pkgname}/"
+    ln -sf raw/xcast.conf "${pkgdir}/opt/${_pkgname}/bin/xcast.conf"
+
+    # Install launcher scripts
+    install -Dm755 "${srcdir}/meeting.sh" "${pkgdir}/usr/bin/${pkgname}"
+    ln -sf "${pkgname}" "${pkgdir}/usr/bin/wemeet"
+    ln -sf "${pkgname}" "${pkgdir}/usr/bin/${pkgname}-x11"
+    ln -sf "${pkgname}" "${pkgdir}/usr/bin/wemeet-x11"
+
+    # Install desktop entry
+    install -Dm644 "${srcdir}/tencent-meeting.desktop" "${pkgdir}/usr/share/applications/${pkgname}.desktop"
+    ln -sf "${pkgname}.desktop" "${pkgdir}/usr/share/applications/wemeet.desktop"
+    ln -sf "${pkgname}.desktop" "${pkgdir}/usr/share/applications/wemeetapp.desktop"
+
+    # Install license
+    install -Dm644 "${srcdir}/LICENSE" "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
+}

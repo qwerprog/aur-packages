@@ -14,6 +14,7 @@
 | :--- | :--- | :--- | :--- |
 | **[tencent-wechat](./tencent-wechat)** | ![AUR version](https://img.shields.io/aur/version/tencent-wechat?color=blue&logo=archlinux) | [AUR 页面](https://aur.archlinux.org/packages/tencent-wechat) | • 原生 Wayland 自动探测与 Fcitx5 `text-input-v3` 选词框跟随<br>• 真实宿主 `$HOME` 映射（彻底解决文件管理器拖拽发送失效问题）<br>• 敏感隐私目录遮蔽（使用空 tmpfs 隔离保护 `~/.ssh` 和 `~/.gnupg`）<br>• 历史聊天记录数据库防分化软链自动维护 |
 | **[tencent-qq](./tencent-qq)** | ![AUR version](https://img.shields.io/aur/version/tencent-qq?color=blue&logo=archlinux) | [AUR 页面](https://aur.archlinux.org/packages/tencent-qq) | • 原生 Ozone Wayland 自动探测与 `text-input-v3` 输入法光标跟随<br>• 轻量级 Bubblewrap 隐私沙盒隔离与敏感密钥遮蔽<br>• 自动清理官方包内置的易损组件 `libssh2.so.1`<br>• 标准化 `/usr/bin/qq` 与 `/usr/bin/tencent-qq` 指令 |
+| **[tencent-meeting](./tencent-meeting)** | ![AUR version](https://img.shields.io/aur/version/tencent-meeting?color=blue&logo=archlinux) | [AUR 页面](https://aur.archlinux.org/packages/tencent-meeting) | • 原生 Wayland / XWayland 屏幕共享兼容与深色模式 Fusion 样式适配<br>• 编译内置 C 胶水层（`wrap.c`）修复 OpenSSL 3、PulseAudio/PipeWire 声音设备与窗体调用<br>• 轻量级 Bubblewrap 隐私沙盒隔离与密钥遮蔽保护<br>• 标准化 `/usr/bin/tencent-meeting` 与 `/usr/bin/wemeet` 快捷指令及桌面图标 |
 | **[eusoft-eudic](./eusoft-eudic)** | ![AUR version](https://img.shields.io/aur/version/eusoft-eudic?color=blue&logo=archlinux) | [AUR 页面](https://aur.archlinux.org/packages/eusoft-eudic) | • 欧路词典 Linux 官方客户端社区重打包与维护<br>• 移除过时捆绑库与冲突的 `libxkbcommon-x11`，彻底修复启动崩溃（SIGSEGV）<br>• 标准化 `/usr/bin/eudic` 与 `/usr/bin/eusoft-eudic` 快捷指令及桌面图标 |
 | **[eusoft-frhelper](./eusoft-frhelper)** | ![AUR version](https://img.shields.io/aur/version/eusoft-frhelper?color=blue&logo=archlinux) | [AUR 页面](https://aur.archlinux.org/packages/eusoft-frhelper) | • 法语助手 Linux 官方客户端社区重打包与维护<br>• 修复过时系统库冲突与 Wayland 适配，杜绝启动段错误<br>• 标准化 `/usr/bin/frhelper` 与 `/usr/bin/eusoft-frhelper` 快捷指令及桌面图标 |
 | **[eusoft-dehelper](./eusoft-dehelper)** | ![AUR version](https://img.shields.io/aur/version/eusoft-dehelper?color=blue&logo=archlinux) | [AUR 页面](https://aur.archlinux.org/packages/eusoft-dehelper) | • 德语助手 Linux 官方客户端社区重打包与维护<br>• 修复过时系统库冲突与 Wayland 适配，杜绝启动段错误<br>• 标准化 `/usr/bin/dehelper` 与 `/usr/bin/eusoft-dehelper` 快捷指令及桌面图标 |
@@ -30,9 +31,10 @@
 推荐使用 Arch Linux AUR 助手（例如 `paru` 或 `yay`）直接安装：
 
 ```bash
-# 安装腾讯软件
+# 安装腾讯应用系列
 paru -S tencent-wechat
 paru -S tencent-qq
+paru -S tencent-meeting
 
 # 安装欧路词典全语种系列
 paru -S eusoft-eudic      # 欧路词典 (英语/通用)
@@ -56,6 +58,7 @@ aur-packages/
 ├── .github/workflows/
 │   ├── sync-tencent-wechat.yml   # 微信每日上游版本检测与 AUR 自动同步
 │   ├── sync-tencent-qq.yml       # QQ 每日上游版本检测与 AUR 自动同步
+│   ├── sync-tencent-meeting.yml  # 腾讯会议每日上游版本检测与 AUR 自动同步
 │   ├── sync-eusoft-eudic.yml     # 欧路词典每日上游版本检测与 AUR 自动同步
 │   ├── sync-eusoft-frhelper.yml  # 法语助手每日上游版本检测与 AUR 自动同步
 │   ├── sync-eusoft-dehelper.yml  # 德语助手每日上游版本检测与 AUR 自动同步
@@ -67,6 +70,7 @@ aur-packages/
 │
 ├── tencent-wechat/               # 微信 AUR 软件包工程
 ├── tencent-qq/                   # QQ AUR 软件包工程
+├── tencent-meeting/              # 腾讯会议 AUR 软件包工程
 ├── eusoft-eudic/                 # 欧路词典 (英语/综合) AUR 软件包工程
 ├── eusoft-frhelper/              # 法语助手 AUR 软件包工程
 ├── eusoft-dehelper/              # 德语助手 AUR 软件包工程
@@ -95,5 +99,5 @@ aur-packages/
 
 ## 免责声明与授权条款
 
-- 本项目所打包的软件本体（如微信、QQ、欧路词典、每日听力等）均为原权利人（如腾讯科技、上海潜言信息科技等）享有著作权的专有软件。本仓库仅提供针对 Arch Linux 环境的社区安装脚本与运行时封装工具。
+- 本项目所打包的软件本体（如微信、QQ、腾讯会议、欧路词典等）均为原权利人（如腾讯科技、上海潜言信息科技等）享有著作权的专有软件。本仓库仅提供针对 Arch Linux 环境的社区安装脚本与运行时封装工具。
 - 本仓库所编写的构建脚本、启动器包装脚本以及相关配置文件均在开源社区兼容协议下提供。

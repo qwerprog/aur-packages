@@ -1,0 +1,15 @@
+[Desktop Entry]
+Name=Tencent Meeting
+Name[zh_CN]=腾讯会议
+Comment=Tencent Meeting Linux Client
+Comment[zh_CN]=腾讯会议 Linux 客户端
+GenericName=Video Conferencing
+GenericName[zh_CN]=视频会议
+Exec=/usr/bin/tencent-meeting %u
+Icon=tencent-meeting
+Terminal=false
+Type=Application
+StartupWMClass=wemeetapp
+MimeType=x-scheme-handler/wemeet;
+Categories=AudioVideo;Video;Network;InstantMessaging;
+Keywords=wemeet;tencent;meeting;腾讯会议;
