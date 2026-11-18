@@ -4,3 +4,7 @@
 src/
 pkg/
 data.tar.*
+
+# Python bytecode
+__pycache__/
+*.py[cod]
