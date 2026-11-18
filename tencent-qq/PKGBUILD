@@ -61,12 +61,13 @@ prepare() {
         loong64) _deb_arch="loongarch64" ;;
     esac
 
-    bsdtar -xf "${pkgname}-${pkgver}-${_deb_arch}.deb" data.tar.xz
+    rm -f data.tar.*
+    bsdtar -xf "${pkgname}-${pkgver}-${_deb_arch}.deb" 'data.tar.*'
 }
 
 package() {
     # Extract data from deb
-    bsdtar -xf data.tar.xz -C "${pkgdir}"
+    bsdtar -xf data.tar.* -C "${pkgdir}"
 
     # Install custom native Wayland + privacy sandbox launcher
     install -Dm755 "${srcdir}/qq.sh" "${pkgdir}/usr/bin/qq"

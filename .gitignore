@@ -3,4 +3,4 @@
 *.deb
 src/
 pkg/
-data.tar.xz
+data.tar.*

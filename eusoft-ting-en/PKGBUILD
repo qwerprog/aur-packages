@@ -2,7 +2,6 @@
 
 pkgname=eusoft-ting-en
 pkgver=26.6.2
-_source_ver=26.9.1
 pkgrel=2
 pkgdesc="Daily English Listening (每日英语听力) for Linux (Community Repackage)"
 arch=('x86_64')
@@ -34,7 +33,7 @@ source=(
     "LICENSE"
 )
 source_x86_64=(
-    "${pkgname}-${pkgver}.deb::https://static.eudic.net/pkg/ting_en/ting_en.deb?v=${_source_ver}"
+    "${pkgname}-${pkgver}.deb::https://static.frdic.com/pkg/ting_en/ting_en.deb"
 )
 noextract=("${pkgname}-${pkgver}.deb")
 
@@ -48,12 +47,13 @@ sha256sums_x86_64=(
 )
 
 prepare() {
-    bsdtar -xf "${pkgname}-${pkgver}.deb" data.tar.xz
+    rm -f data.tar.*
+    bsdtar -xf "${pkgname}-${pkgver}.deb" 'data.tar.*'
 }
 
 package() {
     # Extract opt and usr hierarchies from official deb data
-    tar -xf data.tar.xz -C "${pkgdir}"
+    bsdtar -xf data.tar.* -C "${pkgdir}"
 
     # Install clean launcher script
     install -Dm755 "${srcdir}/ting-en.sh" "${pkgdir}/usr/bin/ting-en"

@@ -2,8 +2,8 @@ name: Check & Auto-Update WeChat to AUR
 
 on:
   schedule:
-    # Run every day at 02:00 UTC (10:00 AM CST)
-    - cron: '0 2 * * *'
+    # Run every day at 02:17 UTC (10:17 AM CST, off-peak minute)
+    - cron: '17 2 * * *'
   workflow_dispatch:
     inputs:
       force_sync:
@@ -11,6 +11,10 @@ on:
         required: false
         type: boolean
         default: false
+
+concurrency:
+  group: sync-tencent-wechat
+  cancel-in-progress: false
 
 jobs:
   check-and-update:
@@ -26,93 +30,19 @@ jobs:
       - name: Check Upstream Version and Hash
         id: check_upstream
         run: |
-          set -e
-          DEB_URL="https://dldir1v6.qq.com/weixin/Universal/Linux/WeChatLinux_x86_64.deb"
-          echo "Checking upstream deb package..."
-          curl -sL "$DEB_URL" -o wechat_upstream.deb
-          
-          # Extract version from control file
-          ar x wechat_upstream.deb control.tar.xz
-          tar -xf control.tar.xz ./control
-          UPSTREAM_VER=$(grep '^Version:' control | awk '{print $2}')
-          UPSTREAM_SHA256=$(sha256sum wechat_upstream.deb | awk '{print $1}')
-          rm -f wechat_upstream.deb control.tar.xz control debian-binary
-          
-          echo "Upstream version: $UPSTREAM_VER"
-          echo "Upstream sha256:  $UPSTREAM_SHA256"
-          
-          CURRENT_VER=$(grep '^pkgver=' tencent-wechat/PKGBUILD | cut -d '=' -f2)
-          echo "Current version:  $CURRENT_VER"
-          
-          if [ "$UPSTREAM_VER" != "$CURRENT_VER" ]; then
-            echo "has_new_version=true" >> $GITHUB_OUTPUT
-            echo "new_ver=$UPSTREAM_VER" >> $GITHUB_OUTPUT
-            echo "new_sha256=$UPSTREAM_SHA256" >> $GITHUB_OUTPUT
-          else
-            echo "has_new_version=false" >> $GITHUB_OUTPUT
-            echo "Upstream is already at latest version ($CURRENT_VER)."
-          fi
+          python3 .github/scripts/check_and_update.py \
+            --mode deb \
+            --pkg-dir tencent-wechat \
+            --deb-url "https://dldir1v6.qq.com/weixin/Universal/Linux/WeChatLinux_x86_64.deb"
 
-      - name: Update PKGBUILD and .SRCINFO
-        if: steps.check_upstream.outputs.has_new_version == 'true'
-        run: |
-          set -e
-          NEW_VER='${{ steps.check_upstream.outputs.new_ver }}'
-          NEW_SHA256='${{ steps.check_upstream.outputs.new_sha256 }}'
-          
-          cd tencent-wechat
-          sed -i "s/^pkgver=.*/pkgver=${NEW_VER}/" PKGBUILD
-          sed -i "s/^pkgrel=.*/pkgrel=1/" PKGBUILD
-          sed -i -E "s/sha256sums_x86_64=\('.*'\)/sha256sums_x86_64=('${NEW_SHA256}')/" PKGBUILD
-          sed -i -E "/sha256sums_x86_64/,/\)/ s/[a-f0-9]{64}/${NEW_SHA256}/" PKGBUILD
-          grep -q "${NEW_SHA256}" PKGBUILD || { echo "ERROR: failed to update sha256sums_x86_64 in PKGBUILD"; exit 1; }
-          
-          sed -i "s/\tpkgver = .*/\tpkgver = ${NEW_VER}/" .SRCINFO
-          sed -i "s/\tpkgrel = .*/\tpkgrel = 1/" .SRCINFO
-          sed -i -E "s/tencent-wechat-[0-9.]+-x86_64\.deb/tencent-wechat-${NEW_VER}-x86_64.deb/g" .SRCINFO
-          sed -i -E "s/sha256sums_x86_64 = [a-f0-9]*/sha256sums_x86_64 = ${NEW_SHA256}/" .SRCINFO
-          cd ..
-          
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add tencent-wechat/PKGBUILD tencent-wechat/.SRCINFO
-          git commit -m "chore(release): bump WeChat to ${NEW_VER}" || true
-          git push origin main
+      - name: Commit and Push Update to GitHub
+        if: steps.check_upstream.outputs.has_update == 'true'
+        env:
+          COMMIT_MSG: ${{ steps.check_upstream.outputs.commit_msg }}
+        run: .github/scripts/commit_and_push_github.sh tencent-wechat "$COMMIT_MSG"
 
       - name: Push to AUR
-        if: steps.check_upstream.outputs.has_new_version == 'true' || inputs.force_sync == true
+        if: steps.check_upstream.outputs.has_update == 'true' || inputs.force_sync == true
         env:
           AUR_SSH_PRIVATE_KEY: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
-        run: |
-          if [ -z "$AUR_SSH_PRIVATE_KEY" ]; then
-            echo "Error: AUR_SSH_PRIVATE_KEY secret is not set in GitHub Secrets!"
-            exit 1
-          fi
-          
-          mkdir -p ~/.ssh
-          echo "$AUR_SSH_PRIVATE_KEY" > ~/.ssh/aur
-          chmod 600 ~/.ssh/aur
-          ssh-keyscan -t ed25519,rsa aur.archlinux.org >> ~/.ssh/known_hosts
-          
-          AUR_DIR="/tmp/aur-wechat"
-          rm -rf "$AUR_DIR"
-          mkdir -p "$AUR_DIR"
-          cd "$AUR_DIR"
-          
-          git init -b master
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git remote add origin ssh://aur@aur.archlinux.org/tencent-wechat.git
-          GIT_SSH_COMMAND="ssh -i ~/.ssh/aur" git pull origin master || true
-          
-          cp -f $GITHUB_WORKSPACE/tencent-wechat/PKGBUILD \
-                $GITHUB_WORKSPACE/tencent-wechat/.SRCINFO \
-                $GITHUB_WORKSPACE/tencent-wechat/wechat.sh \
-                $GITHUB_WORKSPACE/tencent-wechat/wechat.desktop \
-                $GITHUB_WORKSPACE/tencent-wechat/LICENSE \
-                $GITHUB_WORKSPACE/tencent-wechat/DISCLAIMER \
-                "$AUR_DIR/"
-          
-          git add -A
-          git commit -m "Update tencent-wechat" || exit 0
-          GIT_SSH_COMMAND="ssh -i ~/.ssh/aur" git push -u origin master
+        run: .github/scripts/push_aur.sh tencent-wechat

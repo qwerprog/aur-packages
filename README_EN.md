@@ -53,17 +53,22 @@ paru -S eusoft-ting-es    # Daily Spanish Listening
 
 ```text
 aur-packages/
-├── .github/workflows/
-│   ├── sync-tencent-wechat.yml   # Daily upstream check & auto-sync to AUR for WeChat
-│   ├── sync-tencent-qq.yml       # Daily upstream check & auto-sync to AUR for QQ
-│   ├── sync-eusoft-eudic.yml     # Daily upstream check & auto-sync to AUR for Eudic
-│   ├── sync-eusoft-frhelper.yml  # Daily upstream check & auto-sync to AUR for Frhelper
-│   ├── sync-eusoft-dehelper.yml  # Daily upstream check & auto-sync to AUR for Dehelper
-│   ├── sync-eusoft-eshelper.yml  # Daily upstream check & auto-sync to AUR for Eshelper
-│   ├── sync-eusoft-ting-en.yml   # Daily upstream check & auto-sync to AUR for Daily English Listening
-│   ├── sync-eusoft-ting-fr.yml   # Daily upstream check & auto-sync to AUR for Daily French Listening
-│   ├── sync-eusoft-ting-de.yml   # Daily upstream check & auto-sync to AUR for Daily German Listening
-│   └── sync-eusoft-ting-es.yml   # Daily upstream check & auto-sync to AUR for Daily Spanish Listening
+├── .github/
+│   ├── scripts/
+│   │   ├── check_and_update.py         # Upstream version & SHA-256 checker and metadata updater
+│   │   ├── commit_and_push_github.sh   # Concurrency-safe GitHub commit & rebase push helper
+│   │   └── push_aur.sh                 # AUR Git repository sync helper
+│   └── workflows/
+│       ├── sync-tencent-wechat.yml     # Daily upstream check & auto-sync to AUR for WeChat
+│       ├── sync-tencent-qq.yml         # Daily upstream check & auto-sync to AUR for QQ
+│       ├── sync-eusoft-eudic.yml       # Daily upstream check & auto-sync to AUR for Eudic
+│       ├── sync-eusoft-frhelper.yml    # Daily upstream check & auto-sync to AUR for Frhelper
+│       ├── sync-eusoft-dehelper.yml    # Daily upstream check & auto-sync to AUR for Dehelper
+│       ├── sync-eusoft-eshelper.yml    # Daily upstream check & auto-sync to AUR for Eshelper
+│       ├── sync-eusoft-ting-en.yml     # Daily upstream check & auto-sync to AUR for Daily English Listening
+│       ├── sync-eusoft-ting-fr.yml     # Daily upstream check & auto-sync to AUR for Daily French Listening
+│       ├── sync-eusoft-ting-de.yml     # Daily upstream check & auto-sync to AUR for Daily German Listening
+│       └── sync-eusoft-ting-es.yml     # Daily upstream check & auto-sync to AUR for Daily Spanish Listening
 │
 ├── tencent-wechat/               # WeChat AUR package files
 ├── tencent-qq/                   # QQ AUR package files

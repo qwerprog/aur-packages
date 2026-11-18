@@ -2,8 +2,8 @@ name: Check & Auto-Update Dehelper to AUR
 
 on:
   schedule:
-    # Run every day at 03:25 UTC (11:25 AM CST)
-    - cron: '25 3 * * *'
+    # Run every day at 03:19 UTC (11:19 AM CST, off-peak minute)
+    - cron: '19 3 * * *'
   workflow_dispatch:
     inputs:
       force_sync:
@@ -12,48 +12,37 @@ on:
         type: boolean
         default: false
 
+concurrency:
+  group: sync-eusoft-dehelper
+  cancel-in-progress: false
+
 jobs:
   check-and-update:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
+      - name: Check Upstream Version and Hash
+        id: check_upstream
+        run: |
+          python3 .github/scripts/check_and_update.py \
+            --mode deb \
+            --pkg-dir eusoft-dehelper \
+            --deb-url "https://static.frdic.com/pkg/dehelper.deb"
+
+      - name: Commit and Push Update to GitHub
+        if: steps.check_upstream.outputs.has_update == 'true'
+        env:
+          COMMIT_MSG: ${{ steps.check_upstream.outputs.commit_msg }}
+        run: .github/scripts/commit_and_push_github.sh eusoft-dehelper "$COMMIT_MSG"
+
       - name: Push to AUR
-        if: inputs.force_sync == true || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
+        if: steps.check_upstream.outputs.has_update == 'true' || inputs.force_sync == true
         env:
           AUR_SSH_PRIVATE_KEY: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
-        run: |
-          if [ -z "$AUR_SSH_PRIVATE_KEY" ]; then
-            echo "Error: AUR_SSH_PRIVATE_KEY secret is not set in GitHub Secrets!"
-            exit 1
-          fi
-          
-          mkdir -p ~/.ssh
-          echo "$AUR_SSH_PRIVATE_KEY" > ~/.ssh/aur
-          chmod 600 ~/.ssh/aur
-          ssh-keyscan -t ed25519,rsa aur.archlinux.org >> ~/.ssh/known_hosts
-          
-          AUR_DIR="/tmp/aur-dehelper"
-          rm -rf "$AUR_DIR"
-          mkdir -p "$AUR_DIR"
-          cd "$AUR_DIR"
-          
-          git init -b master
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git remote add origin ssh://aur@aur.archlinux.org/eusoft-dehelper.git
-          GIT_SSH_COMMAND="ssh -i ~/.ssh/aur" git pull origin master || true
-          
-          cp -f $GITHUB_WORKSPACE/eusoft-dehelper/PKGBUILD \
-                $GITHUB_WORKSPACE/eusoft-dehelper/.SRCINFO \
-                $GITHUB_WORKSPACE/eusoft-dehelper/dehelper.sh \
-                $GITHUB_WORKSPACE/eusoft-dehelper/eusoft-dehelper.desktop \
-                $GITHUB_WORKSPACE/eusoft-dehelper/LICENSE \
-                "$AUR_DIR/"
-          
-          git add -A
-          git commit -m "Update eusoft-dehelper" || exit 0
-          GIT_SSH_COMMAND="ssh -i ~/.ssh/aur" git push -u origin master
+        run: .github/scripts/push_aur.sh eusoft-dehelper

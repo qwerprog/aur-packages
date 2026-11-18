@@ -53,17 +53,22 @@ paru -S eusoft-ting-es    # 每日西语听力
 
 ```text
 aur-packages/
-├── .github/workflows/
-│   ├── sync-tencent-wechat.yml   # 微信每日上游版本检测与 AUR 自动同步
-│   ├── sync-tencent-qq.yml       # QQ 每日上游版本检测与 AUR 自动同步
-│   ├── sync-eusoft-eudic.yml     # 欧路词典每日上游版本检测与 AUR 自动同步
-│   ├── sync-eusoft-frhelper.yml  # 法语助手每日上游版本检测与 AUR 自动同步
-│   ├── sync-eusoft-dehelper.yml  # 德语助手每日上游版本检测与 AUR 自动同步
-│   ├── sync-eusoft-eshelper.yml  # 西语助手每日上游版本检测与 AUR 自动同步
-│   ├── sync-eusoft-ting-en.yml   # 每日英语听力每日上游版本检测与 AUR 自动同步
-│   ├── sync-eusoft-ting-fr.yml   # 每日法语听力每日上游版本检测与 AUR 自动同步
-│   ├── sync-eusoft-ting-de.yml   # 每日德语听力每日上游版本检测与 AUR 自动同步
-│   └── sync-eusoft-ting-es.yml   # 每日西语听力每日上游版本检测与 AUR 自动同步
+├── .github/
+│   ├── scripts/
+│   │   ├── check_and_update.py         # 上游版本与 SHA-256 校验值检测及元数据更新脚本
+│   │   ├── commit_and_push_github.sh   # 并发安全的 GitHub 变更自动提交与变基推送脚本
+│   │   └── push_aur.sh                 # AUR Git 仓库同步推送脚本
+│   └── workflows/
+│       ├── sync-tencent-wechat.yml     # 微信每日上游版本检测与 AUR 自动同步
+│       ├── sync-tencent-qq.yml         # QQ 每日上游版本检测与 AUR 自动同步
+│       ├── sync-eusoft-eudic.yml       # 欧路词典每日上游版本检测与 AUR 自动同步
+│       ├── sync-eusoft-frhelper.yml    # 法语助手每日上游版本检测与 AUR 自动同步
+│       ├── sync-eusoft-dehelper.yml    # 德语助手每日上游版本检测与 AUR 自动同步
+│       ├── sync-eusoft-eshelper.yml    # 西语助手每日上游版本检测与 AUR 自动同步
+│       ├── sync-eusoft-ting-en.yml     # 每日英语听力每日上游版本检测与 AUR 自动同步
+│       ├── sync-eusoft-ting-fr.yml     # 每日法语听力每日上游版本检测与 AUR 自动同步
+│       ├── sync-eusoft-ting-de.yml     # 每日德语听力每日上游版本检测与 AUR 自动同步
+│       └── sync-eusoft-ting-es.yml     # 每日西语听力每日上游版本检测与 AUR 自动同步
 │
 ├── tencent-wechat/               # 微信 AUR 软件包工程
 ├── tencent-qq/                   # QQ AUR 软件包工程
