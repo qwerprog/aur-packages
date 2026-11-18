@@ -44,8 +44,6 @@ def download_file(url: str, dest: pathlib.Path) -> None:
         "3",
         "--retry-delay",
         "3",
-        "-A",
-        USER_AGENT,
         url,
         "-o",
         str(dest),
