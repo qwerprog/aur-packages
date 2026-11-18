@@ -33,7 +33,7 @@ jobs:
           python3 .github/scripts/check_and_update.py \
             --mode deb \
             --pkg-dir eusoft-ting-es \
-            --deb-url "https://static.frdic.com/pkg/ting_es/ting_es.deb"
+            --deb-url "https://static-asia.frdic.com/pkg/ting_es/ting_es.deb"
 
       - name: Commit and Push Update to GitHub
         if: steps.check_upstream.outputs.has_update == 'true'
