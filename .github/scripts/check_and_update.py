@@ -10,6 +10,7 @@ import json
 import os
 import pathlib
 import re
+import shutil
 import subprocess
 import sys
 import tarfile
@@ -17,10 +18,7 @@ import tempfile
 import time
 import urllib.request
 
-USER_AGENT = (
-    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
-    "(KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
-)
+USER_AGENT = "curl/8.7.1"
 
 
 def write_github_output(kv: dict[str, str]) -> None:
@@ -39,11 +37,22 @@ def write_github_output(kv: dict[str, str]) -> None:
 def download_file(url: str, dest: pathlib.Path) -> None:
     cmd = [
         "curl",
+        "--http1.1",
         "-fsSL",
+        "-C",
+        "-",
+        "--connect-timeout",
+        "30",
+        "--speed-limit",
+        "10240",
+        "--speed-time",
+        "30",
         "--retry",
-        "3",
+        "5",
         "--retry-delay",
-        "3",
+        "5",
+        "-A",
+        USER_AGENT,
         url,
         "-o",
         str(dest),
@@ -60,16 +69,26 @@ def sha256_file(path: pathlib.Path) -> str:
 
 
 def dpkg_deb_version(path: pathlib.Path) -> str:
-    res = subprocess.run(
-        ["dpkg-deb", "-f", str(path), "Version"],
-        check=True,
-        capture_output=True,
-        text=True,
-    )
-    ver = res.stdout.strip()
-    if not ver:
-        raise RuntimeError(f"Empty Version field in {path}")
-    return ver
+    # First try pure-Python parsing from ar/tar header without external tools
+    with open(path, "rb") as fh:
+        header_data = fh.read(2 * 1024 * 1024)
+    ver = extract_version_from_deb_prefix(header_data)
+    if ver:
+        return ver
+
+    # Fallback to dpkg-deb if installed
+    if shutil.which("dpkg-deb"):
+        res = subprocess.run(
+            ["dpkg-deb", "-f", str(path), "Version"],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        ver = res.stdout.strip()
+        if ver:
+            return ver
+
+    raise RuntimeError(f"Could not determine deb version for {path}")
 
 
 def extract_version_from_deb_prefix(data: bytes) -> str | None:
@@ -304,23 +323,50 @@ def update_qq_files(
     srcinfo_path.write_text(srcinfo, encoding="utf-8")
 
 
-def run_deb_mode(pkg_dir: pathlib.Path, deb_url: str) -> None:
+def run_deb_mode(pkg_dir: pathlib.Path, deb_url: str, force: bool = False) -> None:
     pkg_name = pkg_dir.name
     pkgbuild_text = (pkg_dir / "PKGBUILD").read_text(encoding="utf-8")
     current_ver = parse_pkgbuild_var(pkgbuild_text, "pkgver")
     current_rel = parse_pkgbuild_var(pkgbuild_text, "pkgrel")
     current_sha256 = parse_pkgbuild_arch_sha256(pkgbuild_text, "sha256sums_x86_64")
 
+    # Fast prefix check: fetch deb control archive header (first 256 KiB)
+    prefix_ver = None
+    try:
+        req = urllib.request.Request(
+            deb_url,
+            headers={"User-Agent": USER_AGENT, "Range": "bytes=0-262143"},
+        )
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            prefix_bytes = resp.read(262144)
+        raw_prefix_ver = extract_version_from_deb_prefix(prefix_bytes)
+        if raw_prefix_ver:
+            prefix_ver = raw_prefix_ver.replace("-", "_")
+    except Exception as exc:
+        print(f"[{pkg_name}] Prefix range check unavailable ({exc}); proceeding to full check.")
+
+    if prefix_ver is not None:
+        print(f"[{pkg_name}] Current:  {current_ver}-{current_rel} ({current_sha256})")
+        print(f"[{pkg_name}] Upstream (from control): {prefix_ver}")
+        if not force and prefix_ver == current_ver:
+            print(f"[{pkg_name}] Already at latest upstream version ({current_ver}). Skipping full download.")
+            write_github_output({"has_update": "false"})
+            return
+
     print(f"[{pkg_name}] Downloading upstream package: {deb_url}")
     with tempfile.TemporaryDirectory() as tmpdir:
         deb_path = pathlib.Path(tmpdir) / "upstream.deb"
         download_file(deb_url, deb_path)
-        raw_ver = dpkg_deb_version(deb_path)
-        upstream_ver = raw_ver.replace("-", "_")
+        if prefix_ver is not None:
+            upstream_ver = prefix_ver
+        else:
+            raw_ver = dpkg_deb_version(deb_path)
+            upstream_ver = raw_ver.replace("-", "_")
         upstream_sha256 = sha256_file(deb_path)
 
-    print(f"[{pkg_name}] Current:  {current_ver}-{current_rel} ({current_sha256})")
-    print(f"[{pkg_name}] Upstream: {upstream_ver} ({upstream_sha256})")
+    if prefix_ver is None:
+        print(f"[{pkg_name}] Current:  {current_ver}-{current_rel} ({current_sha256})")
+        print(f"[{pkg_name}] Upstream: {upstream_ver} ({upstream_sha256})")
 
     if upstream_ver != current_ver:
         new_ver = upstream_ver
@@ -405,7 +451,7 @@ def resolve_qq_upstream() -> tuple[str, str]:
     return base_pkgver, url_prefix
 
 
-def run_qq_mode(pkg_dir: pathlib.Path) -> None:
+def run_qq_mode(pkg_dir: pathlib.Path, force: bool = False) -> None:
     pkg_name = pkg_dir.name
     pkgbuild_text = (pkg_dir / "PKGBUILD").read_text(encoding="utf-8")
     current_ver = parse_pkgbuild_var(pkgbuild_text, "pkgver")
@@ -416,22 +462,32 @@ def run_qq_mode(pkg_dir: pathlib.Path) -> None:
     base_pkgver, url_prefix = resolve_qq_upstream()
     upstream_pkgver = base_pkgver.replace("-", "_")
 
+    print(f"[{pkg_name}] Current:  {current_ver}-{current_rel} (_url_prefix={current_url_prefix})")
+    print(f"[{pkg_name}] Upstream: {upstream_pkgver} (_url_prefix={url_prefix})")
+
+    if (
+        not force
+        and upstream_pkgver == current_ver
+        and url_prefix == current_url_prefix
+    ):
+        print(f"[{pkg_name}] Already at latest upstream version ({current_ver}) and url_prefix. Skipping downloads.")
+        write_github_output({"has_update": "false"})
+        return
+
     with tempfile.TemporaryDirectory() as tmpdir:
         tmp = pathlib.Path(tmpdir)
         amd64_path = tmp / "amd64.deb"
         amd64_url = f"{url_prefix}/linuxqq_{base_pkgver}_amd64.deb"
-        print(f"[{pkg_name}] Checking amd64 package: {amd64_url}")
+        print(f"[{pkg_name}] Downloading amd64 package: {amd64_url}")
         download_file(amd64_url, amd64_path)
         if dpkg_deb_version(amd64_path) != base_pkgver:
             raise RuntimeError("Version mismatch in amd64.deb")
         sha_x64 = sha256_file(amd64_path)
         amd64_path.unlink()
 
-        print(f"[{pkg_name}] Current:  {current_ver}-{current_rel} ({current_sha_x64})")
-        print(f"[{pkg_name}] Upstream: {upstream_pkgver} ({sha_x64})")
-
         if (
-            upstream_pkgver == current_ver
+            not force
+            and upstream_pkgver == current_ver
             and url_prefix == current_url_prefix
             and sha_x64 == current_sha_x64
         ):
@@ -483,7 +539,10 @@ def main() -> int:
     parser.add_argument("--mode", choices=["deb", "qq"], default="deb")
     parser.add_argument("--pkg-dir", required=True, help="Package directory name")
     parser.add_argument("--deb-url", help="Upstream .deb URL (required for mode=deb)")
+    parser.add_argument("--force", action="store_true", help="Force full download and check")
     args = parser.parse_args()
+
+    force = args.force or os.environ.get("FORCE_SYNC", "").lower() in ("true", "1")
 
     pkg_dir = pathlib.Path(args.pkg_dir)
     if not (pkg_dir / "PKGBUILD").is_file() or not (pkg_dir / ".SRCINFO").is_file():
@@ -494,9 +553,9 @@ def main() -> int:
         if not args.deb_url:
             print("Error: --deb-url is required when --mode=deb", file=sys.stderr)
             return 1
-        run_deb_mode(pkg_dir, args.deb_url)
+        run_deb_mode(pkg_dir, args.deb_url, force=force)
     else:
-        run_qq_mode(pkg_dir)
+        run_qq_mode(pkg_dir, force=force)
     return 0
 
 
