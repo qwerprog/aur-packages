@@ -138,13 +138,53 @@ def extract_version_from_deb_prefix(data: bytes) -> str | None:
     return None
 
 
-def fetch_json(url: str, method: str = "GET", headers: dict[str, str] | None = None, body: bytes | None = None) -> dict:
+def fetch_range_bytes(url: str, start: int = 0, length: int = 262144) -> bytes:
+    end = start + length - 1
+    cmd = [
+        "curl",
+        "--http1.1",
+        "-fsSL",
+        "--connect-timeout",
+        "15",
+        "--speed-limit",
+        "10240",
+        "--speed-time",
+        "15",
+        "--retry",
+        "3",
+        "--retry-delay",
+        "2",
+        "-A",
+        USER_AGENT,
+        "-r",
+        f"{start}-{end}",
+        url,
+    ]
+    proc = subprocess.run(cmd, capture_output=True)
+    if proc.returncode == 0 and proc.stdout:
+        return proc.stdout
+    raise RuntimeError(f"curl range fetch failed: {proc.stderr.decode('utf-8', 'ignore')}")
+
+
+def fetch_json(
+    url: str,
+    method: str = "GET",
+    headers: dict[str, str] | None = None,
+    body: bytes | None = None,
+) -> dict:
     req_headers = {"User-Agent": USER_AGENT}
     if headers:
         req_headers.update(headers)
-    req = urllib.request.Request(url, data=body, headers=req_headers, method=method)
-    with urllib.request.urlopen(req, timeout=20) as resp:
-        return json.loads(resp.read().decode("utf-8"))
+    last_err = None
+    for attempt in range(1, 4):
+        try:
+            req = urllib.request.Request(url, data=body, headers=req_headers, method=method)
+            with urllib.request.urlopen(req, timeout=20) as resp:
+                return json.loads(resp.read().decode("utf-8"))
+        except Exception as exc:
+            last_err = exc
+            time.sleep(attempt * 2)
+    raise RuntimeError(f"Failed fetching {url} after 3 attempts: {last_err}")
 
 
 def parse_pkgbuild_var(pkgbuild_text: str, var_name: str) -> str:
@@ -330,15 +370,10 @@ def run_deb_mode(pkg_dir: pathlib.Path, deb_url: str, force: bool = False) -> No
     current_rel = parse_pkgbuild_var(pkgbuild_text, "pkgrel")
     current_sha256 = parse_pkgbuild_arch_sha256(pkgbuild_text, "sha256sums_x86_64")
 
-    # Fast prefix check: fetch deb control archive header (first 256 KiB)
+    # Fast prefix check: fetch deb control archive header (first 256 KiB) with curl
     prefix_ver = None
     try:
-        req = urllib.request.Request(
-            deb_url,
-            headers={"User-Agent": USER_AGENT, "Range": "bytes=0-262143"},
-        )
-        with urllib.request.urlopen(req, timeout=30) as resp:
-            prefix_bytes = resp.read(262144)
+        prefix_bytes = fetch_range_bytes(deb_url, 0, 262144)
         raw_prefix_ver = extract_version_from_deb_prefix(prefix_bytes)
         if raw_prefix_ver:
             prefix_ver = raw_prefix_ver.replace("-", "_")
@@ -386,7 +421,11 @@ def run_deb_mode(pkg_dir: pathlib.Path, deb_url: str, force: bool = False) -> No
     write_github_output({"has_update": "true", "commit_msg": commit_msg})
 
 
-def resolve_qq_upstream() -> tuple[str, str]:
+def resolve_qq_upstream(
+    current_url_prefix: str | None = None,
+    current_base_ver: str | None = None,
+    force: bool = False,
+) -> tuple[str, str]:
     """Return (base_pkgver, url_prefix) for latest Linux QQ official release."""
     ts = int(time.time() * 1000)
     config_urls = [
@@ -418,6 +457,11 @@ def resolve_qq_upstream() -> tuple[str, str]:
     if not m_v2:
         raise RuntimeError(f"Unrecognized QQ x64 deb URL format: {x64_deb_url}")
     nt_ver, md5_prefix = m_v2.group(1), m_v2.group(2)
+    url_prefix = f"https://qqdl.gtimg.cn/qqfile/QQNT/{nt_ver}/beta/{md5_prefix}"
+
+    if not force and current_url_prefix and current_base_ver and url_prefix == current_url_prefix:
+        print(f"[tencent-qq] Upstream url_prefix ({url_prefix}) matches current PKGBUILD.")
+        return current_base_ver, url_prefix
 
     sign_resp = fetch_json(
         "https://im.qq.com/http2rpc/gotrpc/noauth/trpc.qqntv2.urlsign.UrlSign/GetSign",
@@ -433,21 +477,19 @@ def resolve_qq_upstream() -> tuple[str, str]:
         raise RuntimeError(f"Failed obtaining signed QQ URL: {sign_resp}")
 
     # Read control header from first 256 KiB; fall back to full download if needed
-    req = urllib.request.Request(
-        signed_url,
-        headers={"User-Agent": USER_AGENT, "Range": "bytes=0-262143"},
-    )
-    with urllib.request.urlopen(req, timeout=30) as resp:
-        prefix_bytes = resp.read(262144)
+    try:
+        prefix_bytes = fetch_range_bytes(signed_url, 0, 262144)
+        base_pkgver = extract_version_from_deb_prefix(prefix_bytes)
+    except Exception as exc:
+        print(f"[tencent-qq] Range fetch failed ({exc}), falling back to full download.")
+        base_pkgver = None
 
-    base_pkgver = extract_version_from_deb_prefix(prefix_bytes)
     if not base_pkgver:
         with tempfile.TemporaryDirectory() as tmpdir:
             tmp_deb = pathlib.Path(tmpdir) / "qq_signed.deb"
             download_file(signed_url, tmp_deb)
             base_pkgver = dpkg_deb_version(tmp_deb)
 
-    url_prefix = f"https://qqdl.gtimg.cn/qqfile/QQNT/{nt_ver}/beta/{md5_prefix}"
     return base_pkgver, url_prefix
 
 
@@ -456,10 +498,15 @@ def run_qq_mode(pkg_dir: pathlib.Path, force: bool = False) -> None:
     pkgbuild_text = (pkg_dir / "PKGBUILD").read_text(encoding="utf-8")
     current_ver = parse_pkgbuild_var(pkgbuild_text, "pkgver")
     current_rel = parse_pkgbuild_var(pkgbuild_text, "pkgrel")
+    current_base_ver = parse_pkgbuild_var(pkgbuild_text, "_base_pkgver")
     current_url_prefix = parse_pkgbuild_var(pkgbuild_text, "_url_prefix")
     current_sha_x64 = parse_pkgbuild_arch_sha256(pkgbuild_text, "sha256sums_x86_64")
 
-    base_pkgver, url_prefix = resolve_qq_upstream()
+    base_pkgver, url_prefix = resolve_qq_upstream(
+        current_url_prefix=current_url_prefix,
+        current_base_ver=current_base_ver,
+        force=force,
+    )
     upstream_pkgver = base_pkgver.replace("-", "_")
 
     print(f"[{pkg_name}] Current:  {current_ver}-{current_rel} (_url_prefix={current_url_prefix})")
